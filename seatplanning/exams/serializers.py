@@ -12,9 +12,21 @@ class YearSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ClassSerializer(serializers.ModelSerializer):
+    # This defines the new field that will be added to the API response.
+    student_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Class
-        fields = '__all__'
+        # We explicitly list the fields to include our new custom field.
+        fields = ['id', 'name', 'year', 'faculty', 'student_count']
+
+    def get_student_count(self, obj):
+        """
+        This method is automatically called by the serializer for each Class object.
+        'obj' is the instance of the Class model.
+        It counts how many Student records are linked to this specific class.
+        """
+        return Student.objects.filter(class_name=obj).count()
 
 class SectionSerializer(serializers.ModelSerializer):
     class Meta:
