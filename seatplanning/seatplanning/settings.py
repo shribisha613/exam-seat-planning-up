@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'django_filters',
     'import_export',
     'exams',
+    'room',
 
 ]
 

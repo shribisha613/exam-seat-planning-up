@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Faculty, Year, Class, Section, Student, Exam, SeatAssignment
+from .models import Faculty, Year, Class, Section, Student, Exam, SeatAssignment, Room
 
 class FacultySerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,3 +56,9 @@ class ExcelUploadSerializer(serializers.Serializer):
         if not value.name.endswith('.xlsx'):
             raise serializers.ValidationError("Only Excel (.xlsx) files are allowed")
         return value
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        # We only need to send these fields to the frontend for the selection screen
+        fields = ['id', 'name', 'capacity', 'building']

@@ -12,11 +12,11 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import Student
 from .serializers import StudentSerializer
-from .models import Faculty, Year, Class, Section, Student, Exam, SeatAssignment
+from .models import Faculty, Year, Class, Section, Student, Exam, SeatAssignment, Room, Seat
 from .serializers import (
     FacultySerializer, YearSerializer, ClassSerializer, 
     SectionSerializer, StudentSerializer, ExamSerializer, 
-    SeatAssignmentSerializer, ExcelUploadSerializer
+    SeatAssignmentSerializer, ExcelUploadSerializer, RoomSerializer
 )
 
 # --- NO CHANGES TO ANY OF THESE VIEWSETS ---
@@ -179,50 +179,55 @@ class ExcelUploadView(APIView):
 
 # --- NO CHANGES TO ANY OF THESE VIEWS ---
 class SeatAssignmentGenerator(APIView):
-    """Generates random seat assignments for exams"""
-    
+    """
+    Generates random seat assignments by filling the available seats
+    from the selected rooms with the students for the exam.
+    """
+    @transaction.atomic
     def post(self, request, exam_id, *args, **kwargs):
         try:
             exam = Exam.objects.get(id=exam_id)
-            rooms = request.data.get('rooms', {})
+            room_ids = request.data.get('room_ids', []) # Expects a list of Room IDs
             
-            if not rooms:
-                return Response({"error": "No rooms provided"}, status=status.HTTP_400_BAD_REQUEST)
+            if not room_ids:
+                return Response({"error": "No room IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
             
-            students = list(Student.objects.all())
+            # This is a placeholder. You need to get the specific students for this exam plan.
+            # Example: students = Student.objects.filter(faculty=exam.faculty, year=exam.year)
+            students = list(Student.objects.all()) 
             random.shuffle(students)
             
-            assignments = []
-            student_iterator = iter(students)
+            # Get all available seats from the selected rooms, ordered consistently
+            available_seats = list(Seat.objects.filter(room__id__in=room_ids).order_by('room__name', 'row_num', 'col_num'))
             
-            with transaction.atomic():
-                # Clear previous assignments for this exam to allow re-generation
-                SeatAssignment.objects.filter(exam=exam).delete()
-                
-                for room, capacity in rooms.items():
-                    for seat in range(1, capacity + 1):
-                        try:
-                            student = next(student_iterator)
-                            assignments.append(SeatAssignment(
-                                student=student,
-                                exam=exam,
-                                room_number=room,
-                                seat_number=str(seat)
-                            ))
-                        except StopIteration:
-                            break
-                    else:
-                        continue
-                    break
+            if len(available_seats) < len(students):
+                return Response({
+                    "error": f"Insufficient capacity. {len(students)} students require seating, but only {len(available_seats)} seats are available in the selected rooms."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Clear any previous assignments for this exam
+            SeatAssignment.objects.filter(exam=exam).delete()
             
-            SeatAssignment.objects.bulk_create(assignments)
+            assignments_to_create = []
+            for i, student in enumerate(students):
+                seat_to_assign = available_seats[i]
+                assignments_to_create.append(SeatAssignment(
+                    student=student,
+                    exam=exam,
+                    seat=seat_to_assign
+                ))
             
-            return Response({"message": f"Assigned {len(assignments)} students"}, status=status.HTTP_201_CREATED)
+            SeatAssignment.objects.bulk_create(assignments_to_create)
+            
+            return Response(
+                {"message": f"Successfully assigned {len(assignments_to_create)} students to seats."},
+                status=status.HTTP_201_CREATED
+            )
         
         except Exam.DoesNotExist:
             return Response({"error": "Exam not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ExportSeatAssignments(APIView):
     """Exports seat assignments to Excel"""
@@ -264,3 +269,11 @@ class ExportSeatAssignments(APIView):
             return Response({"error": "Exam not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+class RoomViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for listing and managing Rooms.
+    """
+    # This queryset ensures the API only returns rooms that are marked as available for use.
+    queryset = Room.objects.filter(is_available=True)
+    serializer_class = RoomSerializer

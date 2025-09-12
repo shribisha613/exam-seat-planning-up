@@ -4,7 +4,7 @@ from . import views
 from .views import (
     FacultyViewSet, YearViewSet, ClassViewSet, SectionViewSet,
     StudentViewSet, ExamViewSet, SeatAssignmentViewSet,
-    ExcelUploadView, SeatAssignmentGenerator, ExportSeatAssignments
+    ExcelUploadView, SeatAssignmentGenerator, ExportSeatAssignments, RoomViewSet
 )
 
 router = DefaultRouter()
@@ -15,6 +15,7 @@ router.register(r'sections', SectionViewSet)
 router.register(r'students', StudentViewSet)
 router.register(r'exams', ExamViewSet)
 router.register(r'seat-assignments', SeatAssignmentViewSet)
+router.register(r'rooms', RoomViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
