@@ -35,11 +35,38 @@ class FacultyViewSet(viewsets.ModelViewSet):
 class YearViewSet(viewsets.ModelViewSet):
     queryset = Year.objects.all()
     serializer_class = YearSerializer
-
 class ClassViewSet(viewsets.ModelViewSet):
-    queryset = Class.objects.all()
+    """
+    CRUD operations for Class.
+    This version correctly defines a base queryset for the router AND
+    manually applies filters for the list view.
+    """
+    # --- THE FIX: We must define a base queryset for the router ---
+    # This is the "default" set of data for the viewset.
+    queryset = Class.objects.all() 
+    
+    # The serializer class is correct.
     serializer_class = ClassSerializer
-    filter_fields = ['faculty', 'year']
+
+    def get_queryset(self):
+        """
+        This method is called to get the list of objects for the 'list' action.
+        It starts with the original queryset and then applies our dynamic filters.
+        """
+        # Start with the base queryset defined above.
+        queryset = super().get_queryset().distinct()
+
+        # Look for 'faculty' in the URL parameters.
+        faculty_id = self.request.query_params.get('faculty', None)
+        if faculty_id is not None:
+            queryset = queryset.filter(faculty__id=faculty_id)
+
+        # Look for 'year' in the URL parameters.
+        year_id = self.request.query_params.get('year', None)
+        if year_id is not None:
+            queryset = queryset.filter(year__id=year_id)
+            
+        return queryset
 
 class SectionViewSet(viewsets.ModelViewSet):
     queryset = Section.objects.all()
