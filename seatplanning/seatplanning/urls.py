@@ -30,4 +30,5 @@ urlpatterns = [
     
     # API endpoints
     path('api/', include('exams.urls')),
+    path('api/room-management/', include('room.urls')), 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

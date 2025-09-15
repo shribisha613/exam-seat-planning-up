@@ -60,17 +60,68 @@ class Exam(models.Model):
     
     def __str__(self):
         return f"{self.name} on {self.date}"
+    
 
-class SeatAssignment(models.Model):
-    """Seat assignment for students during exams"""
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-    room_number = models.CharField(max_length=20)
-    seat_number = models.CharField(max_length=20)
+
+class Room(models.Model):
+    """Represents an examination room with a layout template."""
+    name = models.CharField(max_length=100, unique=True)
+    building = models.CharField(max_length=100)
+    capacity = models.IntegerField(default=0, editable=False, help_text="Calculated automatically from template seats.")
+    max_rows = models.IntegerField(default=0, editable=False)
+    max_columns = models.IntegerField(default=0, editable=False)
+    is_available = models.BooleanField(default=True)
+    template_file = models.FileField(upload_to='room_templates/', null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.building})"
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to automatically parse the template
+        and populate the Seat table after the file is saved.
+        """
+        # Save the model instance first to ensure it has an ID and the file is on disk
+        super().save(*args, **kwargs)
+        
+        # If a template file was just uploaded, parse it.
+        if self.template_file:
+            # Import locally to avoid circular import issues
+            from .utils import parse_room_template_and_create_seats
+            parse_room_template_and_create_seats(self)
+
+class Seat(models.Model):
+    """Represents a single, specific seat within a room."""
+    room = models.ForeignKey(Room, related_name='seats', on_delete=models.CASCADE)
+    seat_number = models.CharField(max_length=20) # e.g., "A-01", "B-15"
+    row_num = models.IntegerField()
+    col_num = models.IntegerField()
     
     class Meta:
-        unique_together = ('exam', 'room_number', 'seat_number')
+        # A seat number should be unique within a given room
+        unique_together = ('room', 'seat_number')
+
+    def __str__(self):
+        return f"Seat {self.seat_number} in {self.room.name}"
+
+class SeatAssignment(models.Model):
+    """
+    MODIFIED: This model now links a Student to a specific Seat for an Exam.
+    """
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    # The new, correct way: a direct link to the Seat object.
+    seat = models.ForeignKey(Seat, on_delete=models.CASCADE)
+    
+    # The old fields are no longer needed, as this info is in the Seat model.
+    # room_number = models.CharField(max_length=20)
+    # seat_number = models.CharField(max_length=20)
+    
+    class Meta:
+        # A seat can only be assigned to one student per exam.
+        unique_together = ('exam', 'seat')
     
     def __str__(self):
-        return f"{self.student} in {self.room_number}-{self.seat_number} for {self.exam}"
-# Create your models here.
+        # Updated to reflect the new structure
+        return f"{self.student} at {self.seat} for {self.exam}"
+
