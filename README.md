@@ -15,12 +15,29 @@ A comprehensive Django-based examination seating arrangement system designed for
 - **📈 Analytics Dashboard**: Insights into hall utilization and exam statistics
 - **🔍 Search & Filter**: Quick search functionality for students, exams, and halls
 
+## ⚡ Quick Installation
+
+**Get started in 2 commands:**
+```bash
+git clone https://github.com/shribisha613/exam-seat-planning-up.git
+cd exam-seat-planning-up && ./setup.sh
+```
+
+**Run the server:**
+```bash
+./run.sh
+```
+
+**Visit:** http://127.0.0.1:8000/
+
 ## 🛠️ Technology Stack
 
-- **Backend**: Django 4.x (Python Web Framework)
+- **Backend**: Django 5.2.5 (Python Web Framework)
 - **Database**: SQLite (Development) / PostgreSQL (Production)
 - **Frontend**: HTML5, CSS3, JavaScript, Bootstrap
-- **Authentication**: Django's built-in authentication system
+- **API**: Django REST Framework with JWT Authentication
+- **Data Processing**: Pandas for Excel import/export functionality
+- **Authentication**: Django's built-in authentication system + JWT
 - **Reporting**: PDF generation for seating charts
 - **Deployment**: Compatible with Heroku, AWS, and other cloud platforms
 
@@ -33,13 +50,29 @@ A comprehensive Django-based examination seating arrangement system designed for
 
 ## 🚀 Quick Start
 
-### 1. Clone the Repository
+### 🎆 Method 1: Automated Setup (Recommended)
+
+**One-command setup:**
+```bash
+git clone https://github.com/shribisha613/exam-seat-planning-up.git
+cd exam-seat-planning-up
+./setup.sh
+```
+
+**To run the server anytime:**
+```bash
+./run.sh
+```
+
+### 🔧 Method 2: Manual Setup
+
+#### 1. Clone the Repository
 ```bash
 git clone https://github.com/shribisha613/exam-seat-planning-up.git
 cd exam-seat-planning-up
 ```
 
-### 2. Set Up Virtual Environment
+#### 2. Set Up Virtual Environment
 ```bash
 # Create virtual environment
 python -m venv venv
@@ -51,32 +84,32 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 3. Install Dependencies
+#### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Database Setup
+#### 4. Database Setup
 ```bash
+# Navigate to Django project directory
+cd seatplanning
+
 # Apply database migrations
 python manage.py migrate
 
-# Create superuser account
+# Create superuser account (optional)
 python manage.py createsuperuser
-
-# Load sample data (optional)
-python manage.py loaddata fixtures/sample_data.json
 ```
 
-### 5. Run the Development Server
+#### 5. Run the Development Server
 ```bash
 python manage.py runserver
 ```
 
-### 6. Access the Application
+### 🌐 Access the Application
 - **Main Application**: http://127.0.0.1:8000/
 - **Admin Panel**: http://127.0.0.1:8000/admin/
-- **API Documentation**: http://127.0.0.1:8000/api/docs/ (if available)
+- **API Endpoints**: http://127.0.0.1:8000/api/
 
 ## 📖 Usage Guide
 
@@ -103,24 +136,54 @@ python manage.py runserver
 3. **Find Seat**: Look up assigned seat number and hall
 4. **Download Admit Card**: Generate exam admit card with seating details
 
-## 🏗️ Project Structure
+## 🏢 Project Structure
 
 ```
 exam-seat-planning-up/
-├── apps/
-│   ├── core/                 # Core application logic
-│   ├── halls/                # Hall management
-│   ├── students/             # Student management
-│   ├── exams/                # Exam scheduling
-│   └── reports/              # Report generation
-├── static/                   # Static files (CSS, JS, images)
-├── templates/                # HTML templates
-├── media/                    # User uploaded files
-├── config/                   # Django settings
+├── seatplanning/             # Django project directory
+│   ├── exams/                # Exam management app
+│   ├── room/                 # Room management app
+│   ├── seatplanning/         # Main project settings
+│   ├── media/                # User uploaded files
+│   ├── db.sqlite3            # SQLite database
+│   └── manage.py             # Django management script
+├── venv/                     # Virtual environment
 ├── requirements.txt          # Python dependencies
-├── manage.py                 # Django management script
-└── README.md                # Project documentation
+├── setup.sh                  # Automated setup script
+├── run.sh                    # Quick run script
+└── README.md                 # Project documentation
 ```
+
+## 📝 Installation Scripts
+
+### setup.sh - Automated Setup
+Run this script once for initial setup:
+- Creates virtual environment (if not exists)
+- Installs all dependencies from requirements.txt
+- Applies database migrations
+- Provides instructions for running
+
+```bash
+./setup.sh
+```
+
+### run.sh - Quick Server Start
+Use this script to quickly start the development server:
+- Activates virtual environment
+- Starts Django development server
+- Shows helpful status messages
+
+```bash
+./run.sh
+```
+
+### requirements.txt - Dependencies
+Contains all Python package dependencies with specific versions:
+- Django 5.2.5
+- Django REST Framework
+- Pandas for data processing
+- JWT authentication
+- And all other required packages
 
 ## ⚙️ Configuration
 
@@ -206,28 +269,51 @@ We welcome contributions! Please follow these steps:
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+### Quick Fixes
+
+**Setup Issues**
+```bash
+# Re-run automated setup
+./setup.sh
+```
 
 **Module Not Found Error**
 ```bash
+# Make sure virtual environment is activated
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
 **Database Migration Issues**
 ```bash
+cd seatplanning
 python manage.py makemigrations
 python manage.py migrate --run-syncdb
 ```
 
-**Static Files Not Loading**
+**Server Won't Start**
 ```bash
-python manage.py collectstatic
+# Check if virtual environment exists
+ls -la venv/
+
+# If not, run setup
+./setup.sh
+
+# Or manually create and activate
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 **Permission Denied Errors**
-- Check file permissions
+```bash
+# Make scripts executable
+chmod +x setup.sh run.sh
+
+# Check file permissions
 - Ensure virtual environment is activated
 - Run with appropriate user privileges
+```
 
 ## 📊 API Documentation
 
