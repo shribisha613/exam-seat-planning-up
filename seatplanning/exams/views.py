@@ -16,7 +16,7 @@ from .models import Faculty, Year, Class, Section, Student, Exam, SeatAssignment
 from .serializers import (
     FacultySerializer, YearSerializer, ClassSerializer, 
     SectionSerializer, StudentSerializer, ExamSerializer, 
-    SeatAssignmentSerializer, ExcelUploadSerializer, RoomSerializer
+    SeatAssignmentSerializer, ExcelUploadSerializer, RoomSerializer, SeatSerializer
 )
 
 # --- NO CHANGES TO ANY OF THESE VIEWSETS ---
@@ -187,29 +187,39 @@ class SeatAssignmentGenerator(APIView):
     def post(self, request, exam_id, *args, **kwargs):
         try:
             exam = Exam.objects.get(id=exam_id)
-            room_ids = request.data.get('room_ids', []) # Expects a list of Room IDs
             
+            # --- Get data from the React frontend's payload ---
+            room_ids = request.data.get('room_ids', [])
+            section_ids = request.data.get('section_ids', []) # Get the section IDs
+
+            # --- Validation ---
             if not room_ids:
                 return Response({"error": "No room IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
+            if not section_ids:
+                return Response({"error": "No section IDs provided to select students."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # --- THE FIX: Replace the placeholder with this logic ---
+            # Filter the Student model to get only the students from the selected sections.
+            students_to_assign = list(Student.objects.filter(section__id__in=section_ids))
             
-            # This is a placeholder. You need to get the specific students for this exam plan.
-            # Example: students = Student.objects.filter(faculty=exam.faculty, year=exam.year)
-            students = list(Student.objects.all()) 
-            random.shuffle(students)
+            # Now, shuffle the CORRECT list of students
+            random.shuffle(students_to_assign)
+            
+            # --- The rest of your logic remains the same ---
             
             # Get all available seats from the selected rooms, ordered consistently
             available_seats = list(Seat.objects.filter(room__id__in=room_ids).order_by('room__name', 'row_num', 'col_num'))
             
-            if len(available_seats) < len(students):
+            if len(available_seats) < len(students_to_assign):
                 return Response({
-                    "error": f"Insufficient capacity. {len(students)} students require seating, but only {len(available_seats)} seats are available in the selected rooms."
+                    "error": f"Insufficient capacity. {len(students_to_assign)} students require seating, but only {len(available_seats)} seats are available in the selected rooms."
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # Clear any previous assignments for this exam
             SeatAssignment.objects.filter(exam=exam).delete()
             
             assignments_to_create = []
-            for i, student in enumerate(students):
+            for i, student in enumerate(students_to_assign):
                 seat_to_assign = available_seats[i]
                 assignments_to_create.append(SeatAssignment(
                     student=student,
@@ -230,30 +240,36 @@ class SeatAssignmentGenerator(APIView):
             return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ExportSeatAssignments(APIView):
-    """Exports seat assignments to Excel"""
+    """Exports seat assignments to a comprehensive Excel file."""
     
     def get(self, request, exam_id, *args, **kwargs):
         try:
             exam = Exam.objects.get(id=exam_id)
+            
+            # This is an optimized query to fetch all related data efficiently.
             assignments = SeatAssignment.objects.filter(exam=exam).select_related(
                 'student', 'student__section', 'student__class_name', 
-                'student__year', 'student__faculty'
+                'student__year', 'student__faculty',
+                'seat', 'seat__room'  # <-- Fetches seat and room data
             )
             
             if not assignments.exists():
                 return Response({"message": "No seat assignments found for this exam."}, status=status.HTTP_404_NOT_FOUND)
 
+            # --- THE FIX IS HERE ---
+            # We access the data by following the relationships: a.seat.room.name
             data = [{
                 'Exam Name': exam.name,
                 'Exam Date': exam.date,
-                'Room Number': a.room_number,
-                'Seat Number': a.seat_number,
+                'Building': a.seat.room.building,
+                'Room Name': a.seat.room.name,      # Correct: a -> seat -> room -> name
+                'Seat Number': a.seat.seat_number,    # Correct: a -> seat -> seat_number
                 'Student Name': a.student.name,
                 'Roll No': a.student.roll_no,
-                'Section': a.student.section.name,
-                'Class': a.student.class_name.name,
-                'Year': a.student.year.year_value,
-                'Faculty': a.student.faculty.name
+                'Section': str(a.student.section),
+                'Class': str(a.student.class_name),
+                'Year': str(a.student.year),
+                'Faculty': str(a.student.faculty)
             } for a in assignments]
             
             df = pd.DataFrame(data)
@@ -261,14 +277,20 @@ class ExportSeatAssignments(APIView):
             response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             response['Content-Disposition'] = f'attachment; filename="seat_assignments_{exam.name}.xlsx"'
             
-            df.to_excel(response, index=False, sheet_name='Seat Assignments')
+            # This logic creates a separate, sorted sheet for each room
+            with pd.ExcelWriter(response, engine='openpyxl') as writer:
+                room_names = sorted(df['Room Name'].unique())
+                for room_name in room_names:
+                    room_df = df[df['Room Name'] == room_name].copy()
+                    room_df.sort_values(by='Seat Number', inplace=True)
+                    room_df.to_excel(writer, index=False, sheet_name=room_name)
             
             return response
         
         except Exam.DoesNotExist:
             return Response({"error": "Exam not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 class RoomViewSet(viewsets.ModelViewSet):
     """
