@@ -1,0 +1,31 @@
+# Exam Seat Planning System - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core Django Framework
+Django==5.2.5
+asgiref==3.9.1
+sqlparse==0.5.3
+
+# Django REST Framework and related packages
+djangorestframework==3.16.1
+djangorestframework-simplejwt==5.5.1
+PyJWT==2.10.1
+
+# Django Extensions
+django-cors-headers==4.8.0
+django-filter==25.1
+django-import-export==4.3.9
+
+# Data Processing
+pandas==2.3.2
+numpy==2.3.3
+
+# Import/Export utilities
+diff-match-patch==20241021
+tablib==3.8.0
+
+# Date/Time utilities
+python-dateutil==2.9.0.post0
+pytz==2025.2
+tzdata==2025.2
+six==1.17.0
