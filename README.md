@@ -18,17 +18,19 @@ A comprehensive Django-based examination seating arrangement system designed for
 ## ⚡ Quick Installation
 
 **Get started in 2 commands:**
+
 ```bash
 git clone https://github.com/shribisha613/exam-seat-planning-up.git
 cd exam-seat-planning-up && ./setup.sh
 ```
 
 **Run the server:**
+
 ```bash
 ./run.sh
 ```
 
-**Visit:** http://127.0.0.1:8000/
+**Visit:** <http://127.0.0.1:8000/>
 
 ## 🛠️ Technology Stack
 
@@ -53,6 +55,7 @@ cd exam-seat-planning-up && ./setup.sh
 ### 🎆 Method 1: Automated Setup (Recommended)
 
 **One-command setup:**
+
 ```bash
 git clone https://github.com/shribisha613/exam-seat-planning-up.git
 cd exam-seat-planning-up
@@ -60,6 +63,7 @@ cd exam-seat-planning-up
 ```
 
 **To run the server anytime:**
+
 ```bash
 ./run.sh
 ```
@@ -67,12 +71,14 @@ cd exam-seat-planning-up
 ### 🔧 Method 2: Manual Setup
 
 #### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/shribisha613/exam-seat-planning-up.git
 cd exam-seat-planning-up
 ```
 
 #### 2. Set Up Virtual Environment
+
 ```bash
 # Create virtual environment
 python -m venv venv
@@ -85,11 +91,13 @@ source venv/bin/activate
 ```
 
 #### 3. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 #### 4. Database Setup
+
 ```bash
 # Navigate to Django project directory
 cd seatplanning
@@ -102,14 +110,16 @@ python manage.py createsuperuser
 ```
 
 #### 5. Run the Development Server
+
 ```bash
 python manage.py runserver
 ```
 
 ### 🌐 Access the Application
-- **Main Application**: http://127.0.0.1:8000/
-- **Admin Panel**: http://127.0.0.1:8000/admin/
-- **API Endpoints**: http://127.0.0.1:8000/api/
+
+- **Main Application**: <http://127.0.0.1:8000/>
+- **Admin Panel**: <http://127.0.0.1:8000/admin/>
+- **API Endpoints**: <http://127.0.0.1:8000/api/>
 
 ## 📖 Usage Guide
 
@@ -157,7 +167,9 @@ exam-seat-planning-up/
 ## 📝 Installation Scripts
 
 ### setup.sh - Automated Setup
+
 Run this script once for initial setup:
+
 - Creates virtual environment (if not exists)
 - Installs all dependencies from requirements.txt
 - Applies database migrations
@@ -168,7 +180,9 @@ Run this script once for initial setup:
 ```
 
 ### run.sh - Quick Server Start
+
 Use this script to quickly start the development server:
+
 - Activates virtual environment
 - Starts Django development server
 - Shows helpful status messages
@@ -178,7 +192,9 @@ Use this script to quickly start the development server:
 ```
 
 ### requirements.txt - Dependencies
+
 Contains all Python package dependencies with specific versions:
+
 - Django 5.2.5
 - Django REST Framework
 - Pandas for data processing
@@ -188,6 +204,7 @@ Contains all Python package dependencies with specific versions:
 ## ⚙️ Configuration
 
 ### Environment Variables
+
 Create a `.env` file in the project root:
 
 ```env
@@ -203,6 +220,7 @@ EMAIL_HOST_PASSWORD=your-password
 ```
 
 ### Database Configuration
+
 For production, update `settings.py` to use PostgreSQL:
 
 ```python
@@ -221,6 +239,7 @@ DATABASES = {
 ## 🧪 Testing
 
 Run the test suite:
+
 ```bash
 # Run all tests
 python manage.py test
@@ -234,6 +253,7 @@ coverage html
 ## 🚢 Deployment
 
 ### Using Heroku
+
 1. Install Heroku CLI
 2. Login to Heroku: `heroku login`
 3. Create app: `heroku create your-app-name`
@@ -241,6 +261,7 @@ coverage html
 5. Deploy: `git push heroku main`
 
 ### Using Docker
+
 ```bash
 # Build image
 docker build -t exam-seat-planning .
@@ -272,12 +293,14 @@ We welcome contributions! Please follow these steps:
 ### Quick Fixes
 
 **Setup Issues**
+
 ```bash
 # Re-run automated setup
 ./setup.sh
 ```
 
 **Module Not Found Error**
+
 ```bash
 # Make sure virtual environment is activated
 source venv/bin/activate
@@ -285,6 +308,7 @@ pip install -r requirements.txt
 ```
 
 **Database Migration Issues**
+
 ```bash
 cd seatplanning
 python manage.py makemigrations
@@ -292,6 +316,7 @@ python manage.py migrate --run-syncdb
 ```
 
 **Server Won't Start**
+
 ```bash
 # Check if virtual environment exists
 ls -la venv/
@@ -306,6 +331,7 @@ pip install -r requirements.txt
 ```
 
 **Permission Denied Errors**
+
 ```bash
 # Make scripts executable
 chmod +x setup.sh run.sh
